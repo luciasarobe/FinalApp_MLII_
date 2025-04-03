@@ -42,6 +42,12 @@ if "jobs_instance" not in st.session_state:
 jobs_instance = st.session_state.jobs_instance
 results_manager = st.session_state.results_manager
 
+# Tab title and layout
+st.set_page_config(
+    page_title="JobRaidy - Job Matching",
+    page_icon="💼",
+    layout="wide"
+)
 
 # --- STREAMLIT PAGE ---
 st.title("🎯 Job Matching and Screening")
@@ -113,9 +119,12 @@ candidate = Candidate(name="Anonymous")  # Replace with input if collecting user
 with st.form("questionnaire"):
     st.markdown("Please answer the following questions:")
     for idx, question in enumerate(questions):
-        answer = st.text_area(f"{idx+1}. {question}", key=f"q_{idx}")
+        st.markdown(f"**{idx + 1}. {question}**")
+        answer = st.text_area("", key=f"q_{idx}")
+        st.markdown("---")  # adds spacing between questions
         user_answers.append({"question": question, "answer": answer})
     submitted = st.form_submit_button("Submit Answers")
+
 
 # Once form is submitted, evaluate answers
 if submitted:
