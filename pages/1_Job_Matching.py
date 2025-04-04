@@ -110,17 +110,11 @@ if cv_file:
 st.subheader("📝 Answer Screening Questions")
 
 # Generate screening questions with Gemini
-questions = jobs_instance.generate_questions(selected_job_id, llm)
+raw_questions = jobs_instance.generate_questions(selected_job_id, llm)
 
-# Flatten and split multi-question strings into individual ones
-import itertools
-
-split_questions = []
-for q in questions:
-    split_qs = re.split(r"\n?\s*\d+\s*[\.\)]\s*", q)
-    split_questions.extend([s.strip() for s in split_qs if s.strip()])
-
-questions = split_questions
+# --- Split questions by line ---
+questions = raw_questions.split("\n") if isinstance(raw_questions, str) else raw_questions
+questions = [q.strip() for q in questions if q.strip()]
 
 user_answers = []
 
@@ -131,13 +125,11 @@ candidate = Candidate(name="Anonymous")  # Replace with input if collecting user
 with st.form("questionnaire"):
     st.markdown("Please answer the following questions:")
     for idx, question in enumerate(questions):
-        st.markdown(f"**Question {idx + 1}:** {question}")
+        st.markdown(f"**Question {idx+1}:** {question}")
         answer = st.text_area("Your answer:", key=f"q_{idx}")
         user_answers.append({"question": question, "answer": answer})
         st.markdown("---")
     submitted = st.form_submit_button("Submit Answers")
-
-
 
 # Once form is submitted, evaluate answers
 if submitted:
@@ -212,7 +204,7 @@ if "scored_answers" in st.session_state:
         feedback = llm.invoke(final_prompt)
         st.markdown("### 📣 Gemini's Feedback")
         st.write(feedback.content)
-
+        
 # --- CANDIDATE RANKING ---
 st.subheader("🏆 Candidate Ranking for This Job")
 ranked = results_manager.get_ranked_candidates(selected_job["id"])
