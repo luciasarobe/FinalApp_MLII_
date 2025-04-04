@@ -112,9 +112,12 @@ st.subheader("📝 Answer Screening Questions")
 # Generate screening questions with Gemini
 raw_questions = jobs_instance.generate_questions(selected_job_id, llm)
 
-# --- Split questions by line ---
-questions = raw_questions.split("\n") if isinstance(raw_questions, str) else raw_questions
-questions = [q.strip() for q in questions if q.strip()]
+# --- Better question splitting for numbered questions ---
+if isinstance(raw_questions, str):
+    questions = re.split(r"^\s*\d+\.\s*", raw_questions, flags=re.MULTILINE)
+    questions = [q.strip() for q in questions if q.strip()]
+else:
+    questions = raw_questions
 
 user_answers = []
 
@@ -204,7 +207,7 @@ if "scored_answers" in st.session_state:
         feedback = llm.invoke(final_prompt)
         st.markdown("### 📣 Gemini's Feedback")
         st.write(feedback.content)
-        
+
 # --- CANDIDATE RANKING ---
 st.subheader("🏆 Candidate Ranking for This Job")
 ranked = results_manager.get_ranked_candidates(selected_job["id"])
