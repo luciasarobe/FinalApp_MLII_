@@ -112,21 +112,17 @@ st.subheader("📝 Answer Screening Questions")
 # Generate screening questions with Gemini
 questions = jobs_instance.generate_questions(selected_job_id, llm)
 
-# --- Ensure questions are properly split ---
-if isinstance(questions, str):
-    questions = re.split(r"\d+\.\s", questions)
-    questions = [q.strip() for q in questions if q.strip()]
+# Flatten and split multi-question strings into individual ones
+import itertools
+
+split_questions = []
+for q in questions:
+    split_qs = re.split(r"\n?\s*\d+\s*[\.\)]\s*", q)
+    split_questions.extend([s.strip() for s in split_qs if s.strip()])
+
+questions = split_questions
 
 user_answers = []
-
-# Ensure questions are split individually if returned as one block
-if isinstance(questions, str):
-    # Split questions like: "1. ... 2. ..." OR "1)... 2)..."
-    questions = re.split(r"\n?\s*\d+\s*[\.\)]\s*", questions)
-    questions = [q.strip() for q in questions if q.strip()]
-
-user_answers = []
-
 
 # Create candidate object (customize this as needed)
 candidate = Candidate(name="Anonymous")  # Replace with input if collecting user name
@@ -135,12 +131,12 @@ candidate = Candidate(name="Anonymous")  # Replace with input if collecting user
 with st.form("questionnaire"):
     st.markdown("Please answer the following questions:")
     for idx, question in enumerate(questions):
-        st.markdown(f"**Question {idx + 1}:**")
-        st.markdown(question)
+        st.markdown(f"**Question {idx + 1}:** {question}")
         answer = st.text_area("Your answer:", key=f"q_{idx}")
         user_answers.append({"question": question, "answer": answer})
         st.markdown("---")
     submitted = st.form_submit_button("Submit Answers")
+
 
 
 # Once form is submitted, evaluate answers
