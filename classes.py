@@ -157,10 +157,6 @@ class CandidateEvaluator:
         return scored_answers
 
     def score_each_answer(self, job_title, job_description, question, answer):
-         # Truncate input to avoid exceeding Gemini limits
-        short_description = job_description[:600]
-        short_answer = answer[:600]
-        short_question = question[:300]
         prompt = f"""
         You are an AI recruiter evaluating a candidate's response.
 
