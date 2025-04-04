@@ -112,9 +112,9 @@ st.subheader("📝 Answer Screening Questions")
 # Generate screening questions with Gemini
 raw_questions = jobs_instance.generate_questions(selected_job_id, llm)
 
-# --- Better question splitting for numbered questions ---
+# --- Better question splitting for numbered prompts like 'Question 1:', 'Question 2:' ---
 if isinstance(raw_questions, str):
-    questions = re.split(r"^\s*\d+\.\s*", raw_questions, flags=re.MULTILINE)
+    questions = re.split(r"(?=Question\s*\d+:)", raw_questions)
     questions = [q.strip() for q in questions if q.strip()]
 else:
     questions = raw_questions
