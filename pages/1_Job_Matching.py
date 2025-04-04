@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 #Importing classes
 import sys
 import os
+import re
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 #Gemini imports
@@ -110,7 +111,22 @@ st.subheader("📝 Answer Screening Questions")
 
 # Generate screening questions with Gemini
 questions = jobs_instance.generate_questions(selected_job_id, llm)
+
+# --- Ensure questions are properly split ---
+if isinstance(questions, str):
+    questions = re.split(r"\d+\.\s", questions)
+    questions = [q.strip() for q in questions if q.strip()]
+
 user_answers = []
+
+# Ensure questions are split individually if returned as one block
+if isinstance(questions, str):
+    # Split questions like: "1. ... 2. ..." OR "1)... 2)..."
+    questions = re.split(r"\n?\s*\d+\s*[\.\)]\s*", questions)
+    questions = [q.strip() for q in questions if q.strip()]
+
+user_answers = []
+
 
 # Create candidate object (customize this as needed)
 candidate = Candidate(name="Anonymous")  # Replace with input if collecting user name
@@ -119,10 +135,11 @@ candidate = Candidate(name="Anonymous")  # Replace with input if collecting user
 with st.form("questionnaire"):
     st.markdown("Please answer the following questions:")
     for idx, question in enumerate(questions):
-        st.markdown(f"**{idx + 1}. {question}**")
-        answer = st.text_area("", key=f"q_{idx}")
-        st.markdown("---")  # adds spacing between questions
+        st.markdown(f"**Question {idx + 1}:**")
+        st.markdown(question)
+        answer = st.text_area("Your answer:", key=f"q_{idx}")
         user_answers.append({"question": question, "answer": answer})
+        st.markdown("---")
     submitted = st.form_submit_button("Submit Answers")
 
 
@@ -206,7 +223,6 @@ ranked = results_manager.get_ranked_candidates(selected_job["id"])
 
 for idx, cand in enumerate(ranked, 1):
     st.write(f"{idx}. {cand['name']} ({cand['user_id']}) — Score: {cand['average_score']}/10")
-
 
 # --- COMPANY NEWS ---
 # Initialize NewsAPI
