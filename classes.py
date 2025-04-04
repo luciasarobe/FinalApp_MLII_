@@ -157,10 +157,6 @@ class CandidateEvaluator:
         return scored_answers
 
     def score_each_answer(self, job_title, job_description, question, answer):
-        # Truncate inputs to avoid exceeding model limits
-        short_description = job_description[:500]
-        short_answer = answer[:500]
-        
         prompt = f"""
         You are an AI recruiter evaluating a candidate's response.
 
